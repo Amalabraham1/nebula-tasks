@@ -1,75 +1,175 @@
-# Nebula Tasks
+# Nebula Tasks 🌌
 
-Nebula Tasks is a full-stack productivity command center. It has a polished dashboard, kanban board, calendar due-date view, task history, smart priorities, focus mode, habit streaks, analytics, rule-based task breakdown, projects, tags, priorities, notes, search, filters, and backend JSON storage.
+Nebula Tasks is a full-stack productivity command center built with Node.js, Express, and MongoDB Atlas.
+
+It includes authentication, personalized task management, analytics, focus tracking, habits, projects, and a modern space-themed productivity dashboard.
+
+---
+
+## Features
+
+- User login / signup
+- Session authentication
+- Protected dashboard routes
+- Personalized user task storage
+- MongoDB Atlas integration
+- Kanban board
+- Calendar due-date view
+- Task history
+- Smart priorities
+- Focus mode
+- Habit streaks
+- Analytics dashboard
+- Projects and tags
+- Search and filters
+- Notes support
+- Space-themed Nebula UI
+- Logout flow
+
+---
+
+## Tech Stack
+
+Backend:
+
+- Node.js
+- Express
+- MongoDB Atlas
+- Mongoose
+- express-session
+
+Frontend:
+
+- HTML
+- CSS
+- JavaScript
+
+---
 
 ## Run Locally
 
-On Windows, easiest:
-
-```powershell
-.\start-local.ps1
-```
-
-Or double-click:
-
-```text
-start-local.bat
-```
-
-Normal Node/npm setup:
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Start app:
+
+```bash
 npm start
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:3000
 ```
 
-The backend stores tasks in:
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+MONGODB_URI=your_connection_string
+SESSION_SECRET=your_secret
+PORT=3000
+```
+
+---
+
+## Alternative Startup (Windows)
+
+PowerShell:
+
+```powershell
+.\start-local.ps1
+```
+
+or double-click:
 
 ```text
-data/tasks.json
+start-local.bat
 ```
 
-That file also stores habits, focus sessions, and task history.
-
-If you only have Node available and cannot run `npm install`, this app still starts with a built-in fallback server:
-
-```bash
-node server.js
-```
-
-Normal deployments should still run `npm install` so the Express server is used.
+---
 
 ## Useful Commands
 
 ```bash
+npm start
 npm run check
+```
+
+---
+
+## Project Structure
+
+```text
+Nebula Tasks
+│
+├── models/
+│   ├── User.js
+│   └── Task.js
+│
+├── data/
+│
+├── dashboard.html
+├── login.html
+├── logout.html
+├── index.html
+├── app.js
+├── server.js
+├── styles.css
+├── package.json
+├── render.yaml
+└── README.md
+```
+
+---
+
+## Deployment
+
+### Render (Recommended)
+
+1. Push project to GitHub
+2. Create new Render Web Service
+3. Build command:
+
+```bash
+npm install
+```
+
+4. Start command:
+
+```bash
 npm start
 ```
 
-## Deploy
+5. Add environment variables:
 
-### Render
+```env
+MONGODB_URI
+SESSION_SECRET
+```
 
-1. Push this folder to a GitHub repository.
-2. Create a new Render Web Service.
-3. Use `npm install` as the build command.
-4. Use `npm start` as the start command.
-5. Render will provide an HTTPS URL.
+Render will generate your live URL.
 
-The included `render.yaml` can also be used as a blueprint.
+Nebula Tasks uses Express sessions and MongoDB Atlas, so Render is recommended.
 
-### Railway
+---
 
-1. Create a new Railway project from your GitHub repo.
-2. Railway should detect Node.js automatically.
-3. Set the start command to `npm start` if it asks.
+## Future Ideas
 
-### Vercel
+- User avatars
+- Notifications
+- Drag-and-drop task movement
+- Themes
+- Dashboard customization
+- AI productivity suggestions
 
-This project is better suited to Render or Railway because it uses a long-running Express server and writes to a JSON file. Vercel can host the static frontend, but serverless storage needs a hosted database instead of `data/tasks.json`.
+---
+
+Built as a personal full-stack learning project.
