@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nebula Tasks — Login</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ── Auth-specific extras ── */
+  .auth-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(72,215,182,.28);
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 11px 0;
+    font-size: .95rem;
+    font-weight: 700;
+    color: rgba(238,248,246,.55);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .auth-tab.active {
+    color: #eef8f6;
+    background: rgba(72,215,182,.18);
+  }
+  .auth-tab:first-child { border-right: 1px solid rgba(72,215,182,.28); }
+
+  .auth-form {
+    display: grid;
+    gap: 14px;
+  }
+  .auth-form input {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 1rem;
+    color: #eef8f6;
+    background: rgba(5,11,16,.68);
+    border: 1px solid rgba(158,224,214,.18);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .auth-form input::placeholder { color: rgba(158,179,180,.6); }
+  .auth-form input:focus {
+    border-color: #48d7b6;
+    box-shadow: 0 0 0 3px rgba(72,215,182,.15);
+  }
+
+  .auth-submit {
+    width: 100%;
+    padding: 13px;
+    margin-top: 4px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #04100e;
+    background: linear-gradient(135deg, #246f63, #a7ffe8);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity .2s, transform .2s;
+    box-shadow: 0 0 26px rgba(72,215,182,.22);
+  }
+  .auth-submit:hover { transform: translateY(-2px); opacity: .92; }
+  .auth-submit:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+  .auth-error {
+    padding: 11px 14px;
+    font-size: .9rem;
+    color: #ffd7df;
+    background: rgba(184,75,75,.18);
+    border: 1px solid rgba(184,75,75,.35);
+    border-radius: 8px;
+    display: none;
+  }
+  .auth-error.visible { display: block; }
+
+  .auth-alt {
+    margin-top: 6px;
+    font-size: .88rem;
+    color: rgba(238,248,246,.5);
+    text-align: center;
+  }
+  .auth-alt button {
+    background: none;
+    border: none;
+    color: #48d7b6;
+    cursor: pointer;
+    font-size: inherit;
+    font-weight: 700;
+    padding: 0;
+  }
+  .auth-alt button:hover { text-decoration: underline; }
+
+  .welcome-card h2 {
+    margin-bottom: 24px;
+    font-size: 1.7rem;
+    background: linear-gradient(90deg,#fff,#72a7ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Stars background */
+  body.landing {
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(72,215,182,.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 70%, rgba(114,167,255,.08) 0%, transparent 55%),
+      #0a1218;
+  }
+</style>
+</head>
+
+<body class="landing">
+
+<div class="welcome-card">
+  <div class="logo-wrap" style="margin-bottom:16px">
+    <div class="logo-icon">🌌</div>
+    <h2 style="margin-bottom:0">Nebula Tasks</h2>
+  </div>
+
+  <div class="auth-tabs">
+    <button class="auth-tab active" id="tabLogin"  onclick="switchTab('login')">Login</button>
+    <button class="auth-tab"        id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+  </div>
+
+  <div class="auth-error" id="authError"></div>
+
+  <!-- Login form -->
+  <div id="loginSection">
+    <div class="auth-form">
+      <input type="email"    id="loginEmail"    placeholder="Email address" autocomplete="email">
+      <input type="password" id="loginPassword" placeholder="Password"      autocomplete="current-password">
+      <button class="auth-submit" id="loginBtn" onclick="doLogin()">Login</button>
+    </div>
+    <p class="auth-alt">No account? <button onclick="switchTab('signup')">Sign up free</button></p>
+  </div>
+
+  <!-- Signup form -->
+  <div id="signupSection" hidden>
+    <div class="auth-form">
+      <input type="text"     id="signupName"     placeholder="Your name"         autocomplete="name">
+      <input type="email"    id="signupEmail"    placeholder="Email address"      autocomplete="email">
+      <input type="password" id="signupPassword" placeholder="Password (min 6)"  autocomplete="new-password">
+      <button class="auth-submit" id="signupBtn" onclick="doSignup()">Create account</button>
+    </div>
+    <p class="auth-alt">Already have an account? <button onclick="switchTab('login')">Log in</button></p>
+  </div>
+</div>
+
+<script>
+  function switchTab(tab) {
+    const isLogin = tab === "login";
+    document.getElementById("tabLogin").classList.toggle("active", isLogin);
+    document.getElementById("tabSignup").classList.toggle("active", !isLogin);
+    document.getElementById("loginSection").hidden  = !isLogin;
+    document.getElementById("signupSection").hidden = isLogin;
+    clearError();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("authError");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function clearError() {
+    const el = document.getElementById("authError");
+    el.textContent = "";
+    el.classList.remove("visible");
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled    = loading;
+    btn.textContent = loading ? "Please wait…" : (btnId === "loginBtn" ? "Login" : "Create account");
+  }
+
+  async function doLogin() {
+    clearError();
+    const email    = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    if (!email || !password) return showError("Please enter your email and password.");
+
+    setLoading("loginBtn", true);
+    try {
+      const res  = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
+      const data = await res.json();
+      if (!res.ok) return showError(data.error || "Login failed.");
+      window.location.href = "/dashboard";
+    } catch {
+      showError("Network error — please try again.");
+    } finally {
+      setLoading("loginBtn", false);
+    }
+  }
+
+  async function doSignup() {
+    clearError();
+    const name     = document.getElementById("signupName").value.trim();
+    const email    = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value;
+    if (!name || !email || !password) return showError("All fields are required.");
+    if (password.length < 6) return showError("Password must be at least 6 characters.");
+
+    setLoading("signupBtn", true);
+    try {
+      const res  = await fetch("/api/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, password }) });
+      const data = await res.json();
+      if (!res.ok) return showError(data.error || "Signup failed.");
+      window.location.href = "/dashboard";
+    } catch {
+      showError("Network error — please try again.");
+    } finally {
+      setLoading("signupBtn", false);
+    }
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    if (!document.getElementById("signupSection").hidden) doSignup();
+    else doLogin();
+  });
+</script>
+</body>
+</html>

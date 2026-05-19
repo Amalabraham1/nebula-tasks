@@ -1,0 +1,49 @@
+{
+  "tasks": [],
+  "history": [
+    {
+      "id": "62ac428d-0df4-4ac9-a53e-1aa59e16cb62",
+      "action": "deleted",
+      "taskId": "ca8d51cc-a902-4909-a3da-71abe86944db",
+      "title": "Draft launch checklist",
+      "at": "2026-05-18T08:25:23.475Z"
+    },
+    {
+      "id": "f639ce6d-7392-4da2-bf41-a719806cf224",
+      "action": "deleted",
+      "taskId": "7e2171e7-db09-4818-8d26-b18b6375ec94",
+      "title": "Review API validation",
+      "at": "2026-05-18T08:25:22.754Z"
+    },
+    {
+      "id": "21892e7f-2736-408b-a04f-e4313f75242c",
+      "action": "deleted",
+      "taskId": "2486cdb9-9581-416d-bdbf-23e87efb137e",
+      "title": "Design project cards",
+      "at": "2026-05-18T08:25:21.865Z"
+    },
+    {
+      "id": "30e16ea4-18ac-4f52-b12f-93de8d4c20ea",
+      "action": "created",
+      "taskId": "7e2171e7-db09-4818-8d26-b18b6375ec94",
+      "title": "Review API validation",
+      "at": "2026-05-18T08:23:22.864Z"
+    },
+    {
+      "id": "5dd6c57f-7fa4-405e-ae7f-62e00775bd2a",
+      "action": "created",
+      "taskId": "2486cdb9-9581-416d-bdbf-23e87efb137e",
+      "title": "Design project cards",
+      "at": "2026-05-18T08:23:22.864Z"
+    },
+    {
+      "id": "14000045-7b81-46c0-9e5e-8145dbfed7b3",
+      "action": "created",
+      "taskId": "ca8d51cc-a902-4909-a3da-71abe86944db",
+      "title": "Draft launch checklist",
+      "at": "2026-05-18T08:23:22.864Z"
+    }
+  ],
+  "habits": [],
+  "focusSessions": []
+}

@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nebula Tasks</title>
+    <link rel="stylesheet" href="styles.css?v=productivity-1">
+  </head>
+  <body>
+    <canvas class="starfield" id="starfield" aria-hidden="true"></canvas>
+    <div class="space-wash" aria-hidden="true">
+      <span class="rift rift-one"></span>
+      <span class="rift rift-two"></span>
+      <span class="rift rift-three"></span>
+    </div>
+    <main class="shell">
+      <aside class="sidebar" aria-label="Workspace navigation">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+              <path d="M12 8v5l3.2 2" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M17 4h4v4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <div>
+            <h1>Nebula Tasks</h1>
+            <p id="todayLabel">Loading workspace</p>
+          </div>
+        </div>
+
+        <nav class="view-tabs" aria-label="Views">
+          <button class="tab-button active" type="button" data-view="dashboard">
+            <span>Dashboard</span>
+          </button>
+          <button class="tab-button" type="button" data-view="kanban">
+            <span>Kanban</span>
+          </button>
+          <button class="tab-button" type="button" data-view="calendar">
+            <span>Calendar</span>
+          </button>
+        </nav>
+
+        <div class="sync-card" id="syncCard">
+          <span class="sync-dot" id="syncDot"></span>
+          <div>
+            <strong id="syncTitle">Connecting</strong>
+            <p id="syncText">Preparing backend storage</p>
+          </div>
+        </div>
+
+        <button class="ghost-button"
+id="logoutButton"
+type="button"
+style="margin-top:auto;width:100%;justify-self:end"
+onclick="logout()">
+
+🚪 Logout
+
+</button>
+
+        <section class="sidebar-section" aria-label="Projects">
+          <div class="section-title">
+            <span>Projects</span>
+            <strong id="projectCount">0</strong>
+          </div>
+          <div class="project-list" id="projectList"></div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="hero">
+          <div>
+            <p class="eyebrow">Space-time command center</p>
+            <h2>Bend the day into orbit.</h2>
+            <p class="hero-copy">Track missions, deadlines, blockers, and tiny victories across your own productivity galaxy.</p>
+          </div>
+          <div class="cosmic-visual" aria-hidden="true">
+            <span class="orbit orbit-one"></span>
+            <span class="orbit orbit-two"></span>
+            <span class="orbit orbit-three"></span>
+            <span class="planet-core"></span>
+            <span class="moon moon-one"></span>
+            <span class="moon moon-two"></span>
+          </div>
+          <div class="hero-actions">
+            <label class="search-box">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m21 21-4.4-4.4M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <input id="searchInput" type="search" placeholder="Search title, notes, tags" autocomplete="off">
+            </label>
+            <button class="secondary-button" id="seedButton" type="button">Load demo</button>
+          </div>
+        </header>
+
+        <section class="quick-grid" aria-label="Dashboard statistics">
+          <article class="metric-card">
+            <span>Open</span>
+            <strong id="openCount">0</strong>
+            <p id="openCaption">Tasks in motion</p>
+          </article>
+          <article class="metric-card">
+            <span>Due today</span>
+            <strong id="todayCount">0</strong>
+            <p>Needs attention now</p>
+          </article>
+          <article class="metric-card">
+            <span>Overdue</span>
+            <strong id="overdueCount">0</strong>
+            <p>Past due and open</p>
+          </article>
+          <article class="metric-card">
+            <span>Focus score</span>
+            <strong id="focusScore">0%</strong>
+            <p>Completion momentum</p>
+          </article>
+        </section>
+
+        <section class="cosmic-strip" aria-label="Space briefing">
+          <article class="cosmic-card fact-card">
+            <div>
+              <span class="overline">Space fact</span>
+              <p id="spaceFactText">Loading a tiny piece of the universe.</p>
+              <small id="spaceFactSource">Nebula briefing</small>
+            </div>
+            <button class="ghost-button compact-button" id="nextFactButton" type="button">Next fact</button>
+          </article>
+          <article class="cosmic-card event-card">
+            <div>
+              <span class="overline">Next sky event</span>
+              <p id="nextSpaceEvent">Scanning the calendar.</p>
+              <small id="nextSpaceEventDate">2026 skywatch list</small>
+            </div>
+          </article>
+        </section>
+
+        <section class="mission-grid" aria-label="Smart productivity tools">
+          <article class="mission-panel smart-panel">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Smart priorities</span>
+                <h3>What matters today</h3>
+                <p>Ranked by urgency, due date, blockers, and priority.</p>
+              </div>
+            </div>
+            <div class="smart-list" id="smartPriorityList"></div>
+          </article>
+
+          <article class="mission-panel focus-panel">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Focus mode</span>
+                <h3 id="focusTimer">25:00</h3>
+                <p id="focusStatus">Pick a task, start a sprint.</p>
+              </div>
+            </div>
+            <label class="field">
+              <span>Focus target</span>
+              <select id="focusTaskSelect"></select>
+            </label>
+            <div class="focus-controls">
+              <button class="primary-button" id="startFocusButton" type="button">Start</button>
+              <button class="ghost-button" id="pauseFocusButton" type="button">Pause</button>
+              <button class="ghost-button" id="resetFocusButton" type="button">Reset</button>
+            </div>
+          </article>
+
+          <article class="mission-panel habit-panel">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Habits</span>
+                <h3>Daily streaks</h3>
+                <p>Build repeatable wins beside your tasks.</p>
+              </div>
+            </div>
+            <form class="mini-form" id="habitForm" autocomplete="off">
+              <input id="habitTitle" type="text" maxlength="64" placeholder="Read 10 pages">
+              <button class="primary-button" type="submit">Add</button>
+            </form>
+            <div class="habit-list" id="habitList"></div>
+          </article>
+
+          <article class="mission-panel analytics-panel">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Analytics</span>
+                <h3>Time drift</h3>
+                <p>Where your effort is going.</p>
+              </div>
+            </div>
+            <div class="analytics-grid">
+              <div><strong id="completedToday">0</strong><span>Done today</span></div>
+              <div><strong id="focusMinutes">0</strong><span>Focus minutes</span></div>
+              <div><strong id="habitStreaks">0</strong><span>Total streak</span></div>
+              <div><strong id="overdueRatio">0%</strong><span>Overdue risk</span></div>
+            </div>
+            <div class="project-bars" id="projectBars"></div>
+          </article>
+
+          <article class="mission-panel breakdown-panel">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Task breakdown</span>
+                <h3>Split a mission</h3>
+                <p>Rule-based suggestions, no API key needed.</p>
+              </div>
+            </div>
+            <label class="field">
+              <span>Mission</span>
+              <textarea id="breakdownInput" maxlength="220" placeholder="Build a portfolio site, plan exam prep, publish Nebula Tasks..."></textarea>
+            </label>
+            <div class="focus-controls">
+              <button class="primary-button" id="breakdownButton" type="button">Break down</button>
+              <button class="ghost-button" id="addBreakdownButton" type="button" disabled>Add as tasks</button>
+            </div>
+            <ol class="breakdown-list" id="breakdownList"></ol>
+          </article>
+        </section>
+
+        <form class="task-form" id="taskForm" autocomplete="off">
+          <input type="hidden" id="taskId">
+          <label class="field title-field">
+            <span>Task</span>
+            <input id="taskTitle" name="title" type="text" maxlength="100" required placeholder="Name the next move">
+          </label>
+          <label class="field">
+            <span>Project</span>
+            <input id="taskProject" name="project" type="text" maxlength="32" placeholder="Launch">
+          </label>
+          <label class="field">
+            <span>Due</span>
+            <input id="taskDue" name="due" type="date">
+          </label>
+          <label class="field">
+            <span>Priority</span>
+            <select id="taskPriority" name="priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </label>
+          <label class="field notes-field">
+            <span>Notes</span>
+            <textarea id="taskNotes" name="notes" maxlength="420" placeholder="Add context, links, or acceptance notes"></textarea>
+          </label>
+          <label class="field">
+            <span>Tags</span>
+            <input id="taskTags" name="tags" type="text" maxlength="90" placeholder="design, api">
+          </label>
+          <div class="form-actions">
+            <button class="ghost-button" id="cancelEditButton" type="button" hidden>Cancel</button>
+            <button class="primary-button" type="submit" id="submitButton">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              </svg>
+              <span>Add task</span>
+            </button>
+          </div>
+        </form>
+
+        <div class="toolbar">
+          <div class="segmented" role="group" aria-label="Task filters">
+            <button class="filter-button active" type="button" data-filter="all">All</button>
+            <button class="filter-button" type="button" data-filter="today">Today</button>
+            <button class="filter-button" type="button" data-filter="upcoming">Upcoming</button>
+            <button class="filter-button" type="button" data-filter="completed">Done</button>
+          </div>
+          <label class="sort-box">
+            <span>Sort</span>
+            <select id="sortSelect">
+              <option value="date">Due date</option>
+              <option value="priority">Priority</option>
+              <option value="created">Created</option>
+              <option value="updated">Updated</option>
+            </select>
+          </label>
+        </div>
+
+        <section class="view active" id="dashboardView" data-view-panel="dashboard" aria-label="Task dashboard">
+          <div class="panel-head">
+            <div>
+              <h3 id="taskListTitle">All tasks</h3>
+              <p id="taskListSubtitle">0 tasks</p>
+            </div>
+            <button class="danger-button" id="clearDoneButton" type="button">Clear done</button>
+          </div>
+          <div class="task-list" id="taskListElement"></div>
+        </section>
+
+        <section class="view" id="kanbanView" data-view-panel="kanban" aria-label="Kanban board">
+          <div class="kanban-board" id="kanbanBoard"></div>
+        </section>
+
+        <section class="view" id="calendarView" data-view-panel="calendar" aria-label="Calendar due dates">
+          <div class="calendar-toolbar">
+            <button class="icon-button" id="prevMonthButton" type="button" title="Previous month" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div>
+              <h3 id="calendarTitle">Calendar</h3>
+              <p>Task deadlines and 2026 sky events</p>
+            </div>
+            <button class="icon-button" id="nextMonthButton" type="button" title="Next month" aria-label="Next month">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="event-legend" aria-label="Calendar legend">
+              <span><i class="legend-dot task-dot"></i>Tasks</span>
+              <span><i class="legend-dot space-dot"></i>Space events</span>
+            </div>
+          </div>
+          <div class="calendar-panel">
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <aside class="history-panel">
+              <div class="panel-head compact">
+                <div>
+                  <h3>Task history</h3>
+                  <p id="historySubtitle">Recent changes</p>
+                </div>
+              </div>
+              <ol class="history-list" id="historyList"></ol>
+            </aside>
+          </div>
+        </section>
+
+        <div class="empty-state" id="emptyState" hidden>
+          <svg viewBox="0 0 96 96" aria-hidden="true">
+            <path d="M19 25h58a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H19a8 8 0 0 1-8-8V33a8 8 0 0 1 8-8Z" fill="#e8f0ee"/>
+            <path d="M29 43h32M29 55h20" fill="none" stroke="#246f63" stroke-width="5" stroke-linecap="round"/>
+            <path d="m62 62 6 6 16-18" fill="none" stroke="#cf6d3f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h3>No matching tasks</h3>
+          <p>Change the filters or add the next thing.</p>
+        </div>
+      </section>
+    </main>
+
+    <template id="taskTemplate">
+      <article class="task-card">
+        <button class="complete-button" type="button" title="Toggle complete" aria-label="Toggle complete">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m5 12 4 4 10-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="task-content">
+          <div class="task-row">
+            <h4></h4>
+            <span class="priority-pill"></span>
+          </div>
+          <p class="task-notes"></p>
+          <div class="task-meta"></div>
+          <div class="tag-list"></div>
+        </div>
+        <div class="task-actions">
+          <button class="icon-button edit-button" type="button" title="Edit task" aria-label="Edit task">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 20h4l10.5-10.5a2.7 2.7 0 0 0-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="icon-button delete-button" type="button" title="Delete task" aria-label="Delete task">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </article>
+    </template>
+
+    <script>
+
+async function logout(){
+
+await fetch("/api/logout",{
+method:"POST"
+});
+
+window.location="/logout-page";
+
+}
+
+</script>
+
+    <script src="app.js?v=productivity-1"></script>
+  </body>
+</html>

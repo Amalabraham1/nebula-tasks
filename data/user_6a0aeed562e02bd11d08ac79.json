@@ -1,0 +1,97 @@
+{
+  "history": [
+    {
+      "id": "1c94b827-7d50-46bd-8494-a8ba8cdb4614",
+      "action": "cleared",
+      "taskId": "6a0aef4262e02bd11d08ac88",
+      "title": "Review API validation",
+      "at": "2026-05-18T10:52:48.907Z"
+    },
+    {
+      "id": "089453ae-b461-4098-8b4b-5d37ed2d0b62",
+      "action": "cleared",
+      "taskId": "6a0aef4262e02bd11d08ac86",
+      "title": "Design project cards",
+      "at": "2026-05-18T10:52:48.907Z"
+    },
+    {
+      "id": "b36e3280-07d8-402a-9227-135ba7ac930f",
+      "action": "cleared",
+      "taskId": "6a0aef4262e02bd11d08ac84",
+      "title": "Draft launch checklist",
+      "at": "2026-05-18T10:52:48.907Z"
+    },
+    {
+      "id": "81f23042-c7dd-4532-9ec6-e993add746c6",
+      "action": "cleared",
+      "taskId": "6a0aeee662e02bd11d08ac7c",
+      "title": "study",
+      "at": "2026-05-18T10:52:48.907Z"
+    },
+    {
+      "id": "4c50d850-84d3-4027-9176-7d0d4aa5b4f9",
+      "action": "completed",
+      "taskId": "6a0aeee662e02bd11d08ac7c",
+      "title": "study",
+      "at": "2026-05-18T10:52:46.516Z"
+    },
+    {
+      "id": "8fbd8a7c-d331-4058-98fe-18e9983b9ed7",
+      "action": "completed",
+      "taskId": "6a0aef4262e02bd11d08ac86",
+      "title": "Design project cards",
+      "at": "2026-05-18T10:52:44.805Z"
+    },
+    {
+      "id": "23842ccb-3c73-48a5-9e9e-939a0e4db244",
+      "action": "completed",
+      "taskId": "6a0aef4262e02bd11d08ac84",
+      "title": "Draft launch checklist",
+      "at": "2026-05-18T10:52:42.288Z"
+    },
+    {
+      "id": "4bc0dcae-4f73-476a-ba0a-ada84a64e9c1",
+      "action": "completed",
+      "taskId": "6a0aef4262e02bd11d08ac88",
+      "title": "Review API validation",
+      "at": "2026-05-18T10:52:39.754Z"
+    },
+    {
+      "id": "7d0abee4-f73f-4c01-b8be-92639c5ddc30",
+      "action": "updated",
+      "taskId": "6a0aef4262e02bd11d08ac88",
+      "title": "Review API validation",
+      "at": "2026-05-18T10:52:17.842Z"
+    },
+    {
+      "id": "8c9b3f76-abc7-42e7-8d1e-f8c37fc0ef8d",
+      "action": "created",
+      "taskId": "6a0aef4262e02bd11d08ac88",
+      "title": "Review API validation",
+      "at": "2026-05-18T10:51:47.201Z"
+    },
+    {
+      "id": "396eec00-6e84-4a10-9aed-59c9cd21a2a2",
+      "action": "created",
+      "taskId": "6a0aef4262e02bd11d08ac86",
+      "title": "Design project cards",
+      "at": "2026-05-18T10:51:47.201Z"
+    },
+    {
+      "id": "0ff28230-84fb-4363-b495-7c1e76de721d",
+      "action": "created",
+      "taskId": "6a0aef4262e02bd11d08ac84",
+      "title": "Draft launch checklist",
+      "at": "2026-05-18T10:51:47.201Z"
+    },
+    {
+      "id": "fd88e093-eece-499f-a0bc-6cfbf9a92334",
+      "action": "created",
+      "taskId": "6a0aeee662e02bd11d08ac7c",
+      "title": "study",
+      "at": "2026-05-18T10:50:14.432Z"
+    }
+  ],
+  "habits": [],
+  "focusSessions": []
+}
