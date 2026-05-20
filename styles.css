@@ -430,6 +430,192 @@ p {
   grid-column: span 2;
 }
 
+/* ══════════════════════════════════════════════════════
+   WEEKLY PULSE STRIP
+   Sits between cosmic-strip and mission-grid.
+   Uses existing mission-panel glass card style.
+══════════════════════════════════════════════════════ */
+
+.pulse-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+}
+
+/* Motivation banner spans all 3 columns */
+.pulse-banner {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 20px;
+  background: linear-gradient(
+    110deg,
+    rgba(36, 111, 99, 0.22),
+    rgba(72, 215, 182, 0.10),
+    rgba(214, 140, 255, 0.14)
+  );
+  border: 1px solid rgba(72, 215, 182, 0.28);
+  border-radius: 8px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 32px rgba(72, 215, 182, 0.06);
+  text-align: center;
+}
+
+.pulse-banner span {
+  position: relative;
+  z-index: 1;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #e8f7f4;
+  letter-spacing: 0.01em;
+  transition: opacity 0.35s ease;
+}
+
+/* Weekly Pulse stats card */
+.pulse-panel {
+  grid-column: 1;
+}
+
+.pulse-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pulse-stat {
+  padding: 11px 12px;
+  background: rgba(238, 248, 246, 0.06);
+  border: 1px solid rgba(238, 248, 246, 0.10);
+  border-radius: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.pulse-stat strong {
+  display: block;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.pulse-stat span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Red highlight when overdue > 0 */
+.pulse-stat.pulse-stat-alert {
+  border-color: rgba(184, 75, 75, 0.45);
+  background: rgba(184, 75, 75, 0.10);
+}
+
+.pulse-stat.pulse-stat-alert strong {
+  color: #f7a0a0;
+}
+
+/* Trend chart card */
+.trend-panel {
+  grid-column: 2;
+}
+
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 100px;
+  padding: 4px 0 2px;
+}
+
+.trend-col {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+
+.trend-count {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--muted);
+  min-height: 14px;
+  line-height: 1;
+}
+
+.trend-bar-wrap {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.trend-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(72, 215, 182, 0.85) 0%,
+    rgba(36, 111, 99, 0.55) 100%
+  );
+  box-shadow: 0 0 10px rgba(72, 215, 182, 0.18);
+  transition: height 0.55s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.trend-bar-today {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 201, 107, 0.92) 0%,
+    rgba(185, 128, 34, 0.65) 100%
+  );
+  box-shadow: 0 0 14px rgba(255, 201, 107, 0.30);
+}
+
+.trend-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.trend-label-today {
+  color: var(--gold);
+}
+
+/* Smart insight card */
+.insight-panel {
+  grid-column: 3;
+}
+
+.insight-text {
+  font-size: 1.05rem;
+  font-weight: 760;
+  line-height: 1.5;
+  color: #d4ede9;
+  transition: opacity 0.18s ease;
+}
+
+/* Responsive — collapse to 1 column below 780px */
+@media (max-width: 780px) {
+  .pulse-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .pulse-panel,
+  .trend-panel,
+  .insight-panel {
+    grid-column: 1;
+  }
+}
+
 .smart-list,
 .habit-list,
 .project-bars,

@@ -144,6 +144,64 @@ onclick="logout()">
           </article>
         </section>
 
+        <!-- ── Weekly Pulse Strip ────────────────────────── -->
+        <section class="pulse-strip" aria-label="Weekly productivity pulse" id="weeklyPulseStrip">
+          <!-- motivation banner spans full width -->
+          <div class="pulse-banner" id="motivationBanner" aria-live="polite">
+            <span id="motivationText">🚀 Loading your mission briefing…</span>
+          </div>
+
+          <!-- Weekly Pulse stats card -->
+          <article class="mission-panel pulse-panel" aria-label="Weekly Pulse">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Weekly Pulse</span>
+                <h3>Your week at a glance</h3>
+              </div>
+            </div>
+            <div class="pulse-stats" id="pulseStats">
+              <div class="pulse-stat">
+                <strong id="pulseCompleted">0</strong>
+                <span>Done this week</span>
+              </div>
+              <div class="pulse-stat">
+                <strong id="pulsePercent">0%</strong>
+                <span>Completion rate</span>
+              </div>
+              <div class="pulse-stat">
+                <strong id="pulseStreak">0</strong>
+                <span>Day streak</span>
+              </div>
+              <div class="pulse-stat" id="pulseOverdueStat">
+                <strong id="pulseOverdue">0</strong>
+                <span>Overdue</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- 7-day trend chart -->
+          <article class="mission-panel trend-panel" aria-label="7-day completion trend">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Completion Trend</span>
+                <h3>Last 7 days</h3>
+              </div>
+            </div>
+            <div class="trend-chart" id="trendChart" aria-hidden="true"></div>
+          </article>
+
+          <!-- Smart insight -->
+          <article class="mission-panel insight-panel" aria-label="Smart productivity insight">
+            <div class="panel-head compact">
+              <div>
+                <span class="overline">Mission Intel</span>
+                <h3>Smart insight</h3>
+              </div>
+            </div>
+            <p class="insight-text" id="insightText">Calculating your trajectory…</p>
+          </article>
+        </section>
+
         <section class="mission-grid" aria-label="Smart productivity tools">
           <article class="mission-panel smart-panel">
             <div class="panel-head compact">

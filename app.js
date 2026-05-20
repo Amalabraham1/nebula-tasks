@@ -89,7 +89,16 @@ const els = {
   historyList: document.querySelector("#historyList"),
   emptyState: document.querySelector("#emptyState"),
   starfield: document.querySelector("#starfield"),
-  template: document.querySelector("#taskTemplate")
+  template: document.querySelector("#taskTemplate"),
+  // Weekly Pulse
+  motivationText: document.querySelector("#motivationText"),
+  pulseCompleted: document.querySelector("#pulseCompleted"),
+  pulsePercent: document.querySelector("#pulsePercent"),
+  pulseStreak: document.querySelector("#pulseStreak"),
+  pulseOverdue: document.querySelector("#pulseOverdue"),
+  pulseOverdueStat: document.querySelector("#pulseOverdueStat"),
+  trendChart: document.querySelector("#trendChart"),
+  insightText: document.querySelector("#insightText")
 };
 
 const filterNames = {
@@ -296,6 +305,7 @@ async function init() {
   initSpaceTimeEffects();
   bindEvents();
   initSettings();
+  startMotivationBanner();
   await migrateLegacyTasks();
   await refresh();
 }
@@ -699,6 +709,7 @@ function render() {
   renderHabits();
   renderAnalytics();
   renderBreakdown();
+  renderWeeklyPulse();
   els.emptyState.hidden = state.loading || tasks.length > 0 || state.view === "calendar";
 }
 
@@ -1546,6 +1557,250 @@ function showToast(title, message) {
     toast.classList.add("toast-hiding");
     toast.addEventListener("transitionend", () => toast.remove(), { once: true });
   }, 2800);
+}
+
+/* ══════════════════════════════════════════════════════
+   WEEKLY PULSE — productivity analytics layer
+   Pure frontend, read-only from state.tasks / state.history
+══════════════════════════════════════════════════════ */
+
+/* ── Helpers ─────────────────────────────────────────── */
+
+/** Return an array of the last N day-keys (YYYY-MM-DD), newest last */
+function lastNDayKeys(n) {
+  const keys = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    keys.push(toDateKey(d));
+  }
+  return keys;
+}
+
+/** Start-of-ISO-week key for today */
+function weekStartKey() {
+  const d = new Date();
+  const dow = d.getDay(); // 0 Sun … 6 Sat
+  d.setDate(d.getDate() - dow);
+  return toDateKey(d);
+}
+
+/** Count history "completed" events on a given dateKey */
+function completionsOnDay(dateKey) {
+  return state.history.filter(e => e.action === "completed" && e.at?.slice(0, 10) === dateKey).length;
+}
+
+/** Total completions since start of this week */
+function weeklyCompletedCount() {
+  const start = weekStartKey();
+  return state.history.filter(e => e.action === "completed" && e.at?.slice(0, 10) >= start).length;
+}
+
+/**
+ * Current streak: how many consecutive days (ending today or yesterday)
+ * had at least one completion.
+ */
+function currentStreak() {
+  let streak = 0;
+  const today = toDateKey(new Date());
+  for (let i = 0; i < 60; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = toDateKey(d);
+    if (completionsOnDay(key) > 0) {
+      streak++;
+    } else if (i === 0) {
+      // Today has zero — check yesterday before breaking
+      continue;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+/** Which day-of-week name has the most completions (last 60 days) */
+function mostProductiveDay() {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const counts = new Array(7).fill(0);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 60);
+  state.history.forEach(e => {
+    if (e.action !== "completed") return;
+    const d = new Date(e.at);
+    if (d >= cutoff) counts[d.getDay()]++;
+  });
+  const max = Math.max(...counts);
+  if (max === 0) return null;
+  return days[counts.indexOf(max)];
+}
+
+/** Week-over-week delta (this week vs last week, as signed integer) */
+function weekOverWeekDelta() {
+  const start = weekStartKey();
+  const lastStart = (() => {
+    const d = new Date(start);
+    d.setDate(d.getDate() - 7);
+    return toDateKey(d);
+  })();
+  const thisWeek = state.history.filter(e => e.action === "completed" && e.at?.slice(0, 10) >= start).length;
+  const lastWeek = state.history.filter(e => {
+    const k = e.at?.slice(0, 10);
+    return e.action === "completed" && k >= lastStart && k < start;
+  }).length;
+  return { thisWeek, lastWeek, delta: thisWeek - lastWeek };
+}
+
+/* ── Main render ─────────────────────────────────────── */
+
+function renderWeeklyPulse() {
+  if (!els.pulseCompleted) return; // guard: element not in DOM yet
+
+  const days7 = lastNDayKeys(7);
+  const completed = weeklyCompletedCount();
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t => t.done).length;
+  const percent = total ? Math.round((done / total) * 100) : 0;
+  const streak = currentStreak();
+  const overdue = state.tasks.filter(isOverdue).length;
+
+  // 1. Pulse stats
+  els.pulseCompleted.textContent = completed;
+  els.pulsePercent.textContent = `${percent}%`;
+  els.pulseStreak.textContent = streak;
+  els.pulseOverdue.textContent = overdue;
+  // Highlight overdue stat in red when > 0
+  if (els.pulseOverdueStat) {
+    els.pulseOverdueStat.classList.toggle("pulse-stat-alert", overdue > 0);
+  }
+
+  // 2. Trend chart — pure HTML/CSS bars
+  renderTrendChart(days7);
+
+  // 3. Smart insight
+  renderInsight(completed, overdue, streak);
+}
+
+function renderTrendChart(days7) {
+  if (!els.trendChart) return;
+  els.trendChart.replaceChildren();
+
+  const counts = days7.map(k => completionsOnDay(k));
+  const max = Math.max(...counts, 1); // avoid /0
+
+  const shortDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const today = toDateKey(new Date());
+
+  days7.forEach((key, i) => {
+    const count = counts[i];
+    const pct = Math.max(4, Math.round((count / max) * 100)); // at least 4% for visibility
+    const isToday = key === today;
+
+    const dayDate = new Date(`${key}T00:00:00`);
+    const dayLabel = shortDays[dayDate.getDay()];
+
+    const col = document.createElement("div");
+    col.className = "trend-col";
+    col.innerHTML = `
+      <span class="trend-count">${count > 0 ? count : ""}</span>
+      <div class="trend-bar-wrap">
+        <div class="trend-bar${isToday ? " trend-bar-today" : ""}"
+             style="height: 0%"
+             data-target="${pct}"
+             aria-label="${count} completed on ${key}">
+        </div>
+      </div>
+      <span class="trend-label${isToday ? " trend-label-today" : ""}">${dayLabel}</span>
+    `;
+    els.trendChart.append(col);
+  });
+
+  // Animate bars up after paint (smooth entrance)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      els.trendChart.querySelectorAll(".trend-bar").forEach(bar => {
+        bar.style.height = `${bar.dataset.target}%`;
+      });
+    });
+  });
+}
+
+function renderInsight(completed, overdue, streak) {
+  if (!els.insightText) return;
+
+  const bestDay = mostProductiveDay();
+  const { thisWeek, lastWeek, delta } = weekOverWeekDelta();
+  const pctChange = lastWeek > 0 ? Math.round(((delta) / lastWeek) * 100) : null;
+
+  let insight = "";
+
+  if (overdue >= 3) {
+    insight = `⚠️ ${overdue} overdue missions need your attention right now.`;
+  } else if (overdue > 0) {
+    insight = `🔴 ${overdue} overdue ${overdue === 1 ? "mission" : "missions"} — clear the backlog first.`;
+  } else if (pctChange !== null && pctChange >= 15) {
+    insight = `📈 Momentum rising ${pctChange > 0 ? "+" : ""}${pctChange}% this week vs last week.`;
+  } else if (pctChange !== null && pctChange <= -15) {
+    insight = `📉 Pace is down ${Math.abs(pctChange)}% vs last week — time to re-engage.`;
+  } else if (streak >= 5) {
+    insight = `🔥 ${streak}-day streak — don't break the chain!`;
+  } else if (streak >= 2) {
+    insight = `⚡ ${streak}-day streak in progress — keep it going.`;
+  } else if (bestDay) {
+    insight = `🗓️ You're most productive on ${bestDay}s — plan your hardest work then.`;
+  } else if (completed >= 5) {
+    insight = `✅ Solid week — ${completed} missions completed so far.`;
+  } else if (thisWeek === 0 && state.tasks.length > 0) {
+    insight = `🌌 No completions yet this week. Pick one task and start the orbit.`;
+  } else {
+    insight = `✨ Small wins compound into big missions. Keep going.`;
+  }
+
+  // Animate text swap
+  els.insightText.style.opacity = "0";
+  setTimeout(() => {
+    els.insightText.textContent = insight;
+    els.insightText.style.opacity = "1";
+  }, 180);
+}
+
+/* ── Motivation banner ───────────────────────────────── */
+
+const _bannerMessages = [
+  "🚀 Great progress today — orbit secured.",
+  "✨ Small wins compound into big missions.",
+  "⚡ Every task closed is momentum banked.",
+  "🌌 Stay in flow. Your best work is ahead.",
+  "🎯 Focus on the next action, not the full map.",
+  "🔥 Consistency beats intensity — keep showing up.",
+  "💫 Clarity is a superpower. One task at a time.",
+  "🛸 Your future self will thank you for today.",
+  "🌠 Finish what you started — the orbit depends on it.",
+  "🪐 Progress > perfection. Ship, then improve."
+];
+
+let _bannerIndex = 0;
+let _bannerInterval = null;
+
+function startMotivationBanner() {
+  if (!els.motivationText) return;
+  if (_bannerInterval) return; // already running
+
+  // Pick a random start position
+  _bannerIndex = Math.floor(Math.random() * _bannerMessages.length);
+  els.motivationText.textContent = _bannerMessages[_bannerIndex];
+
+  _bannerInterval = setInterval(() => {
+    if (!els.motivationText) return;
+    _bannerIndex = (_bannerIndex + 1) % _bannerMessages.length;
+
+    // Fade out → swap → fade in
+    els.motivationText.style.opacity = "0";
+    setTimeout(() => {
+      els.motivationText.textContent = _bannerMessages[_bannerIndex];
+      els.motivationText.style.opacity = "1";
+    }, 350);
+  }, 5000);
 }
 
 init();
