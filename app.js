@@ -1397,6 +1397,20 @@ function saveSettings(settings) {
 
 function applySettings(settings) {
   // Focus timer length — only update if timer is not running
+  const theme = settings.theme || "nebula";
+
+document.documentElement.setAttribute(
+  "data-theme",
+  theme
+);
+
+document.body.setAttribute("data-theme", theme);
+
+console.log(
+  "Theme applied:",
+  document.documentElement.getAttribute("data-theme")
+);
+
   if (!state.focus.running) {
     const secs = Math.max(300, Math.min(7200, (settings.focusLength || 25) * 60));
     state.focus.totalSeconds = secs;
