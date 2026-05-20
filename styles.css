@@ -945,6 +945,57 @@ p {
 .kanban-items {
   display: grid;
   gap: 10px;
+  /* Ensure empty columns are still droppable */
+  min-height: 60px;
+  padding-bottom: 4px;
+  transition: background 0.18s ease;
+}
+
+/* ── Drag-and-drop visuals ───────────────────────────── */
+
+/* Card being dragged */
+.task-card[draggable="true"] {
+  cursor: grab;
+}
+.task-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.task-card.dnd-dragging {
+  opacity: 0.35;
+  transform: scale(0.97) rotate(-0.8deg);
+  box-shadow: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+/* Column drop zone — active highlight */
+.kanban-items.dnd-zone-active {
+  background: rgba(36, 111, 99, 0.07);        /* --green tint */
+  border-radius: 6px;
+  outline: 2px dashed rgba(36, 111, 99, 0.35);
+  outline-offset: -2px;
+}
+
+/* Ghost placeholder that shows where the card will land */
+.dnd-placeholder {
+  height: 56px;
+  border-radius: 6px;
+  background: rgba(36, 111, 99, 0.08);
+  border: 1.5px dashed rgba(36, 111, 99, 0.38);
+  backdrop-filter: blur(4px);
+  animation: dnd-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes dnd-pulse {
+  from { opacity: 0.55; }
+  to   { opacity: 1; }
+}
+
+/* Subtle lift on hoverable kanban cards */
+.task-card.compact[draggable="true"]:not(.dnd-dragging):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(24, 34, 35, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .task-card.compact {

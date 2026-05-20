@@ -748,22 +748,103 @@ function renderDashboard(tasks) {
   els.taskList.replaceChildren(...tasks.map(task => taskCard(task)));
 }
 
+/* ── Kanban drag-and-drop state ──────────────────────── */
+const _dnd = {
+  draggedId: null,
+  draggedEl: null,
+  sourceZone: null
+};
+
 function renderKanban(tasks) {
   els.kanban.replaceChildren();
   statusColumns.forEach(column => {
     const columnTasks = tasks.filter(task => task.status === column.id);
     const section = document.createElement("section");
     section.className = "kanban-column";
+    section.dataset.columnId = column.id;
     section.innerHTML = `
       <div class="kanban-head">
         <h3>${column.label}</h3>
-        <strong>${columnTasks.length}</strong>
+        <strong class="kanban-col-count">${columnTasks.length}</strong>
       </div>
-      <div class="kanban-items"></div>
+      <div class="kanban-items" data-drop-column="${column.id}"></div>
     `;
     const items = section.querySelector(".kanban-items");
     columnTasks.forEach(task => items.append(taskCard(task, true)));
+    _bindDropZone(items);
     els.kanban.append(section);
+  });
+}
+
+/* Bind dragover / dragleave / drop to a kanban-items zone */
+function _bindDropZone(zone) {
+  zone.addEventListener("dragover", e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    zone.classList.add("dnd-zone-active");
+
+    /* Reposition the placeholder ghost */
+    const after = _dragAfterElement(zone, e.clientY);
+    let ghost = zone.querySelector(".dnd-placeholder");
+    if (!ghost) {
+      ghost = document.createElement("div");
+      ghost.className = "dnd-placeholder";
+    }
+    if (after) zone.insertBefore(ghost, after);
+    else zone.appendChild(ghost);
+  });
+
+  zone.addEventListener("dragleave", e => {
+    if (!zone.contains(e.relatedTarget)) {
+      zone.classList.remove("dnd-zone-active");
+      zone.querySelector(".dnd-placeholder")?.remove();
+    }
+  });
+
+  zone.addEventListener("drop", async e => {
+    e.preventDefault();
+    zone.classList.remove("dnd-zone-active");
+    zone.querySelector(".dnd-placeholder")?.remove();
+
+    const taskId = e.dataTransfer.getData("text/plain");
+    const newStatus = zone.dataset.dropColumn;
+    if (!taskId || !newStatus) return;
+
+    /* Optimistic move: insert card visually before the API call */
+    if (_dnd.draggedEl) {
+      _dnd.draggedEl.classList.remove("dnd-dragging");
+      const after = _dragAfterElement(zone, e.clientY);
+      if (after) zone.insertBefore(_dnd.draggedEl, after);
+      else zone.appendChild(_dnd.draggedEl);
+      _refreshColumnCounts();
+    }
+
+    /* Reuse the existing status update path — identical to the status <select> */
+    try {
+      await api(`/tasks/${taskId}/status`, { method: "PATCH", body: { status: newStatus } });
+    } finally {
+      await refresh();   // full re-render to keep everything in sync
+    }
+  });
+}
+
+/* Return the element a dragged card should be inserted before, or null */
+function _dragAfterElement(zone, pointerY) {
+  const candidates = [...zone.querySelectorAll(".task-card:not(.dnd-dragging)")];
+  return candidates.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = pointerY - (box.top + box.height / 2);
+    if (offset < 0 && offset > closest.offset) return { offset, el: child };
+    return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).el ?? null;
+}
+
+/* Recount cards in each column header after an optimistic move */
+function _refreshColumnCounts() {
+  els.kanban.querySelectorAll(".kanban-column").forEach(col => {
+    const n = col.querySelectorAll(".kanban-items .task-card").length;
+    const badge = col.querySelector(".kanban-col-count");
+    if (badge) badge.textContent = n;
   });
 }
 
@@ -1135,6 +1216,31 @@ function taskCard(task, compact = false) {
   card.classList.add(`priority-${task.priority}`);
   card.classList.toggle("done", task.done);
   card.classList.toggle("compact", compact);
+
+  /* ── Drag support for kanban cards ── */
+  if (compact) {
+    card.draggable = true;
+    card.dataset.taskId = task.id;
+
+    card.addEventListener("dragstart", e => {
+      _dnd.draggedId = task.id;
+      _dnd.draggedEl = card;
+      _dnd.sourceZone = card.closest(".kanban-items");
+      e.dataTransfer.setData("text/plain", String(task.id));
+      e.dataTransfer.effectAllowed = "move";
+      /* Short delay so the browser snapshot captures the normal card */
+      requestAnimationFrame(() => card.classList.add("dnd-dragging"));
+    });
+
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dnd-dragging");
+      document.querySelectorAll(".dnd-zone-active").forEach(z => z.classList.remove("dnd-zone-active"));
+      document.querySelectorAll(".dnd-placeholder").forEach(p => p.remove());
+      _dnd.draggedId = null;
+      _dnd.draggedEl = null;
+      _dnd.sourceZone = null;
+    });
+  }
 
   card.querySelector("h4").textContent = task.title;
   card.querySelector(".priority-pill").textContent = task.priority;
