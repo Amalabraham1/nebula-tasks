@@ -58,7 +58,11 @@ function requireAuth(req, res, next) {
 
 // ─── Page routes ─────────────────────────────────────────────────────────────
 
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/", async (req,res)=>{
+    if(req.session?.userId){
+        return res.redirect("/dashboard");
+    }
+res.redirect("/login");});
 app.get("/login", (req, res) => res.sendFile(path.join(__dirname, "login.html")));
 app.get("/dashboard", requireAuth, (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 

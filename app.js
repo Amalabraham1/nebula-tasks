@@ -297,7 +297,24 @@ async function init() {
   initSpaceTimeEffects();
   bindEvents();
   await migrateLegacyTasks();
+  await loadUserProfile();
   await refresh();
+}
+
+async function loadUserProfile() {
+  try {
+    const res  = await fetch("/api/me");
+    const data = await res.json();
+    if (!data.loggedIn) return;
+    const name    = data.name || "Navigator";
+    const initial = name.charAt(0).toUpperCase();
+    const avatar  = document.getElementById("profileAvatar");
+    const welcome = document.getElementById("profileWelcome");
+    if (avatar)  avatar.textContent  = initial;
+    if (welcome) welcome.textContent = `Welcome back, ${name} 👋`;
+  } catch {
+    // silently skip — avatar stays at fallback "N"
+  }
 }
 
 function bindEvents() {
@@ -1214,11 +1231,28 @@ function editTask(task) {
 }
 
 async function toggleTask(task) {
+  const markingDone = !task.done;
   await api(`/tasks/${task.id}/status`, {
     method: "PATCH",
     body: { status: task.done ? "active" : "done" }
   });
+  if (markingDone) showToast("✨ Mission Complete", "Task moved into orbit.");
   await refresh();
+}
+
+function showToast(title, message) {
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "nebula-toast";
+  toast.innerHTML = `<span class="toast-title">${title}</span><span class="toast-msg">${message}</span>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("toast-visible"));
+  setTimeout(() => {
+    toast.classList.remove("toast-visible");
+    toast.classList.add("toast-hiding");
+    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+  }, 2800);
 }
 
 async function removeTask(id) {
