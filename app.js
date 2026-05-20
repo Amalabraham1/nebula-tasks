@@ -296,25 +296,9 @@ init();
 async function init() {
   initSpaceTimeEffects();
   bindEvents();
+  initSettings();
   await migrateLegacyTasks();
-  await loadUserProfile();
   await refresh();
-}
-
-async function loadUserProfile() {
-  try {
-    const res  = await fetch("/api/me");
-    const data = await res.json();
-    if (!data.loggedIn) return;
-    const name    = data.name || "Navigator";
-    const initial = name.charAt(0).toUpperCase();
-    const avatar  = document.getElementById("profileAvatar");
-    const welcome = document.getElementById("profileWelcome");
-    if (avatar)  avatar.textContent  = initial;
-    if (welcome) welcome.textContent = `Welcome back, ${name} 👋`;
-  } catch {
-    // silently skip — avatar stays at fallback "N"
-  }
 }
 
 function bindEvents() {
@@ -1231,28 +1215,11 @@ function editTask(task) {
 }
 
 async function toggleTask(task) {
-  const markingDone = !task.done;
   await api(`/tasks/${task.id}/status`, {
     method: "PATCH",
     body: { status: task.done ? "active" : "done" }
   });
-  if (markingDone) showToast("✨ Mission Complete", "Task moved into orbit.");
   await refresh();
-}
-
-function showToast(title, message) {
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
-  const toast = document.createElement("div");
-  toast.className = "nebula-toast";
-  toast.innerHTML = `<span class="toast-title">${title}</span><span class="toast-msg">${message}</span>`;
-  container.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add("toast-visible"));
-  setTimeout(() => {
-    toast.classList.remove("toast-visible");
-    toast.classList.add("toast-hiding");
-    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
-  }, 2800);
 }
 
 async function removeTask(id) {
@@ -1293,3 +1260,164 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+/* ══════════════════════════════════════════════════════
+   SETTINGS PANEL
+   — Local-only, no backend. Persisted via localStorage.
+══════════════════════════════════════════════════════ */
+
+const SETTINGS_KEY = "nebula-tasks.settings.v1";
+
+const DEFAULT_SETTINGS = {
+  displayName:  "",
+  dailyGoal:    5,
+  focusLength:  25,
+  theme:        "nebula",
+  toasts:       true,
+  starfield:    true
+};
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+function saveSettings(settings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function applySettings(settings) {
+  // Focus timer length — only update if timer is not running
+  if (!state.focus.running) {
+    const secs = Math.max(300, Math.min(7200, (settings.focusLength || 25) * 60));
+    state.focus.totalSeconds = secs;
+    state.focus.secondsLeft  = secs;
+    if (els.focusTimer) els.focusTimer.textContent = formatTimer(secs);
+  }
+
+  // Starfield visibility
+  const canvas = document.querySelector("#starfield");
+  if (canvas) canvas.style.opacity = settings.starfield ? "1" : "0";
+
+  // Store toast preference on window for toggleTask to read
+  window._nebulaToastsEnabled = settings.toasts !== false;
+}
+
+function populateSettingsForm(settings) {
+  const get = id => document.getElementById(id);
+
+  if (get("settingDisplayName")) get("settingDisplayName").value = settings.displayName || "";
+  if (get("settingDailyGoal"))   get("settingDailyGoal").value   = settings.dailyGoal  ?? 5;
+  if (get("settingFocusLength")) get("settingFocusLength").value  = settings.focusLength ?? 25;
+  if (get("settingToasts"))      get("settingToasts").checked     = settings.toasts !== false;
+  if (get("settingStarfield"))   get("settingStarfield").checked  = settings.starfield !== false;
+
+  // Theme radio
+  const themeRadio = document.querySelector(`input[name="settingTheme"][value="${settings.theme || "nebula"}"]`);
+  if (themeRadio) themeRadio.checked = true;
+}
+
+function readSettingsForm() {
+  const get = id => document.getElementById(id);
+  const themeRadio = document.querySelector('input[name="settingTheme"]:checked');
+
+  return {
+    displayName:  (get("settingDisplayName")?.value || "").trim(),
+    dailyGoal:    Math.max(1, Math.min(50, parseInt(get("settingDailyGoal")?.value, 10) || 5)),
+    focusLength:  Math.max(5, Math.min(120, parseInt(get("settingFocusLength")?.value, 10) || 25)),
+    theme:        themeRadio?.value || "nebula",
+    toasts:       get("settingToasts")?.checked ?? true,
+    starfield:    get("settingStarfield")?.checked ?? true
+  };
+}
+
+function openSettings() {
+  const drawer   = document.getElementById("settingsDrawer");
+  const backdrop = document.getElementById("settingsBackdrop");
+  if (!drawer) return;
+
+  populateSettingsForm(loadSettings());
+  drawer.hidden = false;
+
+  // Force reflow so transition fires
+  requestAnimationFrame(() => {
+    drawer.classList.add("settings-open");
+    backdrop.classList.add("settings-backdrop-visible");
+  });
+
+  // Trap focus on close button initially
+  document.getElementById("settingsClose")?.focus();
+
+  // Escape key closes
+  drawer._escHandler = e => { if (e.key === "Escape") closeSettings(); };
+  document.addEventListener("keydown", drawer._escHandler);
+}
+
+function closeSettings() {
+  const drawer   = document.getElementById("settingsDrawer");
+  const backdrop = document.getElementById("settingsBackdrop");
+  if (!drawer) return;
+
+  drawer.classList.remove("settings-open");
+  backdrop.classList.remove("settings-backdrop-visible");
+
+  drawer.addEventListener("transitionend", () => {
+    drawer.hidden = true;
+  }, { once: true });
+
+  if (drawer._escHandler) document.removeEventListener("keydown", drawer._escHandler);
+}
+
+function initSettings() {
+  const settings = loadSettings();
+  applySettings(settings);
+
+  document.getElementById("settingsButton")?.addEventListener("click", openSettings);
+  document.getElementById("settingsClose")?.addEventListener("click", closeSettings);
+  document.getElementById("settingsBackdrop")?.addEventListener("click", closeSettings);
+
+  document.getElementById("settingsSave")?.addEventListener("click", () => {
+    const settings = readSettingsForm();
+    saveSettings(settings);
+    applySettings(settings);
+
+    // Update sidebar greeting if display name changed
+    if (settings.displayName) {
+      const welcome = document.getElementById("profileWelcome");
+      const avatar  = document.getElementById("profileAvatar");
+      if (welcome) welcome.textContent = `Welcome back, ${settings.displayName} 👋`;
+      if (avatar)  avatar.textContent  = settings.displayName.charAt(0).toUpperCase();
+    }
+
+    // Show saved confirmation
+    const note = document.getElementById("settingsSaveNote");
+    if (note) {
+      note.hidden = false;
+      clearTimeout(note._timer);
+      note._timer = setTimeout(() => { note.hidden = true; }, 2500);
+    }
+  });
+}
+
+// Patch showToast to respect the toasts preference
+const _originalShowToast = typeof showToast === "function" ? showToast : null;
+function showToast(title, message) {
+  if (window._nebulaToastsEnabled === false) return;
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "nebula-toast";
+  toast.innerHTML = `<span class="toast-title">${title}</span><span class="toast-msg">${message}</span>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("toast-visible"));
+  setTimeout(() => {
+    toast.classList.remove("toast-visible");
+    toast.classList.add("toast-hiding");
+    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
+  }, 2800);
+}
+
