@@ -291,7 +291,6 @@ els.todayLabel.textContent = new Intl.DateTimeFormat(undefined, {
   day: "numeric"
 }).format(new Date());
 
-init();
 
 async function init() {
   initSpaceTimeEffects();
@@ -1336,24 +1335,32 @@ function readSettingsForm() {
 }
 
 function openSettings() {
-  const drawer   = document.getElementById("settingsDrawer");
+  const drawer = document.getElementById("settingsDrawer");
   const backdrop = document.getElementById("settingsBackdrop");
-  if (!drawer) return;
+
+  if (!drawer) {
+    console.log("Settings drawer not found");
+    return;
+  }
 
   populateSettingsForm(loadSettings());
+
   drawer.hidden = false;
 
-  // Force reflow so transition fires
   requestAnimationFrame(() => {
     drawer.classList.add("settings-open");
-    backdrop.classList.add("settings-backdrop-visible");
+
+    if (backdrop) {
+      backdrop.classList.add("settings-backdrop-visible");
+    }
   });
 
-  // Trap focus on close button initially
   document.getElementById("settingsClose")?.focus();
 
-  // Escape key closes
-  drawer._escHandler = e => { if (e.key === "Escape") closeSettings(); };
+  drawer._escHandler = (e) => {
+    if (e.key === "Escape") closeSettings();
+  };
+
   document.addEventListener("keydown", drawer._escHandler);
 }
 
@@ -1421,3 +1428,4 @@ function showToast(title, message) {
   }, 2800);
 }
 
+init();
