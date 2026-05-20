@@ -5,37 +5,478 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Logged Out • Nebula Tasks</title>
 <link rel="stylesheet" href="styles.css">
+<style>
+
+/* ── Orbital rings ─────────────────────────────────────── */
+.orbit-scene {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  animation: ring-spin linear infinite;
+}
+
+.orbit-ring:nth-child(1) {
+  width: 520px;
+  height: 520px;
+  border-color: rgba(72, 215, 182, 0.10);
+  box-shadow: 0 0 40px rgba(72, 215, 182, 0.04) inset;
+  animation-duration: 38s;
+}
+
+.orbit-ring:nth-child(1)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(72, 215, 182, 0.75);
+  box-shadow: 0 0 14px rgba(72, 215, 182, 0.65), 0 0 28px rgba(72, 215, 182, 0.30);
+  transform: translateY(-50%);
+}
+
+.orbit-ring:nth-child(2) {
+  width: 730px;
+  height: 730px;
+  border-color: rgba(114, 167, 255, 0.08);
+  box-shadow: 0 0 60px rgba(114, 167, 255, 0.03) inset;
+  animation-duration: 58s;
+  animation-direction: reverse;
+}
+
+.orbit-ring:nth-child(2)::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(114, 167, 255, 0.72);
+  box-shadow: 0 0 12px rgba(114, 167, 255, 0.55), 0 0 22px rgba(114, 167, 255, 0.25);
+  transform: translateX(-50%);
+}
+
+.orbit-ring:nth-child(3) {
+  width: 960px;
+  height: 960px;
+  border-color: rgba(214, 140, 255, 0.06);
+  animation-duration: 82s;
+}
+
+@keyframes ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Floating feature pills ────────────────────────────── */
+.pill-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.float-pill {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: rgba(238, 248, 246, 0.40);
+  background: linear-gradient(135deg, rgba(13, 23, 33, 0.55), rgba(19, 34, 45, 0.42));
+  border: 1px solid rgba(72, 215, 182, 0.12);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.float-pill:nth-child(1) { top: 11%;  left: 5%;   animation: pill-float-a  9s ease-in-out infinite alternate; }
+.float-pill:nth-child(2) { top: 20%;  right: 7%;  animation: pill-float-b 11s ease-in-out infinite alternate; animation-delay: -3s; }
+.float-pill:nth-child(3) { top: 70%;  left: 4%;   animation: pill-float-a 13s ease-in-out infinite alternate; animation-delay: -5s; }
+.float-pill:nth-child(4) { top: 79%;  right: 6%;  animation: pill-float-b 10s ease-in-out infinite alternate; animation-delay: -2s; }
+.float-pill:nth-child(5) { top: 43%;  left: 2%;   animation: pill-float-a 14s ease-in-out infinite alternate; animation-delay: -6s; }
+.float-pill:nth-child(6) { top: 54%;  right: 3%;  animation: pill-float-b 12s ease-in-out infinite alternate; animation-delay: -4s; }
+.float-pill:nth-child(7) { top: 7%;   right: 26%; animation: pill-float-a 16s ease-in-out infinite alternate; animation-delay: -8s; }
+.float-pill:nth-child(8) { top: 88%;  left: 30%;  animation: pill-float-b 15s ease-in-out infinite alternate; animation-delay: -7s; }
+
+@keyframes pill-float-a {
+  0%   { transform: translateY(0px)   translateX(0px);  opacity: 0.62; }
+  50%  { transform: translateY(-13px) translateX(5px);  opacity: 0.42; }
+  100% { transform: translateY(7px)   translateX(-4px); opacity: 0.55; }
+}
+@keyframes pill-float-b {
+  0%   { transform: translateY(0px)   translateX(0px);  opacity: 0.52; }
+  50%  { transform: translateY(11px)  translateX(-7px); opacity: 0.38; }
+  100% { transform: translateY(-6px)  translateX(4px);  opacity: 0.58; }
+}
+
+/* ── Card sits above background layers ─────────────────── */
+.welcome-card {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Motivational quote area ────────────────────────────── */
+.quote-area {
+  margin-top: 16px;
+  min-height: 26px;
+}
+
+.quote-text {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: rgba(158, 179, 180, 0.68);
+  line-height: 1.5;
+  transition: opacity 0.5s ease;
+}
+
+.quote-text.fading {
+  opacity: 0;
+}
+
+/* ── Session summary ────────────────────────────────────── */
+.session-summary {
+  margin: 26px 0 0;
+  padding: 14px 16px 16px;
+  background: linear-gradient(135deg,
+    rgba(72, 215, 182, 0.07),
+    rgba(114, 167, 255, 0.05));
+  border: 1px solid rgba(72, 215, 182, 0.16);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.session-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255, 201, 107, 0.82);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.session-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.session-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 6px 8px;
+  background: rgba(238, 248, 246, 0.04);
+  border: 1px solid rgba(238, 248, 246, 0.07);
+  border-radius: 10px;
+}
+
+.stat-icon { font-size: 1.1rem; line-height: 1; }
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #eef8f6;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(158, 179, 180, 0.62);
+  line-height: 1.25;
+  text-align: center;
+}
+
+/* ── Button hierarchy ───────────────────────────────────── */
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 34px;
+  flex-wrap: wrap;
+}
+
+/* Primary — Login Again: glowing CTA */
+.hero-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 162px;
+  padding: 14px 26px;
+  border-radius: 13px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #03100d;
+  background: linear-gradient(135deg, #48d7b6 0%, #2bb89d 100%);
+  border: 1px solid rgba(72, 215, 182, 0.50);
+  box-shadow:
+    0 0 26px rgba(72, 215, 182, 0.38),
+    0 6px 20px rgba(72, 215, 182, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.26s ease, box-shadow 0.26s ease;
+}
+
+.hero-btn-primary::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -90%;
+  width: 48%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+  transform: rotate(20deg);
+  transition: left 0.5s ease;
+}
+
+.hero-btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 44px rgba(72, 215, 182, 0.56),
+    0 10px 28px rgba(72, 215, 182, 0.28);
+}
+
+.hero-btn-primary:hover::before { left: 160%; }
+.hero-btn-primary:active { transform: scale(0.97); }
+
+/* Secondary — Back Home: soft ghost */
+.hero-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 144px;
+  padding: 13px 22px;
+  border-radius: 13px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: rgba(238, 248, 246, 0.65);
+  background: rgba(19, 34, 45, 0.45);
+  border: 1px solid rgba(158, 224, 214, 0.16);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  transition: transform 0.24s ease, color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.hero-btn-secondary:hover {
+  transform: translateY(-3px);
+  color: rgba(238, 248, 246, 0.90);
+  border-color: rgba(114, 167, 255, 0.32);
+  box-shadow:
+    0 0 18px rgba(114, 167, 255, 0.13),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.hero-btn-secondary:active { transform: scale(0.97); }
+
+/* ── Footer ─────────────────────────────────────────────── */
+.logout-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 16px;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.logout-footer-inner {
+  display: inline-block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: rgba(158, 179, 180, 0.34);
+  letter-spacing: 0.03em;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(13, 23, 33, 0.28);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(72, 215, 182, 0.06);
+  transition: color 0.3s ease, border-color 0.3s ease;
+  pointer-events: auto;
+}
+
+.logout-footer-inner:hover {
+  color: rgba(158, 179, 180, 0.58);
+  border-color: rgba(72, 215, 182, 0.13);
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .float-pill:nth-child(5),
+  .float-pill:nth-child(6) { display: none; }
+  .orbit-ring:nth-child(3) { display: none; }
+}
+
+@media (max-width: 480px) {
+  .float-pill { display: none; }
+  .welcome-card { padding: 36px 22px; }
+  .session-stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+}
+
+</style>
 </head>
 <body class="landing">
 
+<!-- Orbital rings (behind everything) -->
+<div class="orbit-scene" aria-hidden="true">
+  <div class="orbit-ring"></div>
+  <div class="orbit-ring"></div>
+  <div class="orbit-ring"></div>
+</div>
+
+<!-- Floating feature pills -->
+<div class="pill-field" aria-hidden="true">
+  <span class="float-pill">📊 Weekly Pulse</span>
+  <span class="float-pill">⚡ Focus Mode</span>
+  <span class="float-pill">🌌 Kanban Board</span>
+  <span class="float-pill">🚀 Smart Missions</span>
+  <span class="float-pill">🧠 Productivity Insights</span>
+  <span class="float-pill">🔥 Daily Streaks</span>
+  <span class="float-pill">📅 Calendar View</span>
+  <span class="float-pill">✨ Mission Breakdown</span>
+</div>
+
+<!-- Main card — existing structure preserved exactly -->
 <div class="welcome-card">
 
-<div class="logo-wrap">
-<div class="logo-icon">🌌</div>
+  <div class="logo-wrap">
+    <div class="logo-icon">🌌</div>
 
-<div class="landing-text">
-<h1>Until Next Orbit</h1>
+    <div class="landing-text">
+      <h1>Until Next Orbit</h1>
 
-<p>
-You’ve safely logged out of Nebula Tasks.
-Your missions are stored and waiting for your return.
-</p>
+      <p>
+        You've safely logged out of Nebula Tasks.
+        Your missions are stored and waiting for your return.
+      </p>
+
+      <!-- Rotating motivational quote (new, layered below existing copy) -->
+      <div class="quote-area">
+        <span class="quote-text" id="quoteText">&ldquo;Small wins become galaxies.&rdquo;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session summary (new, inside card) -->
+  <div class="session-summary" role="region" aria-label="Today's orbit summary">
+    <p class="session-eyebrow">Today&rsquo;s Orbit</p>
+    <div class="session-stats-row">
+      <div class="session-stat">
+        <span class="stat-icon">✓</span>
+        <span class="stat-value" id="statMissions">6</span>
+        <span class="stat-label">Missions completed</span>
+      </div>
+      <div class="session-stat">
+        <span class="stat-icon">⏱</span>
+        <span class="stat-value" id="statFocus">52</span>
+        <span class="stat-label">Focus minutes</span>
+      </div>
+      <div class="session-stat">
+        <span class="stat-icon">🔥</span>
+        <span class="stat-value" id="statStreak">4</span>
+        <span class="stat-label">Day streak</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing buttons — hrefs and text preserved, classes updated for hierarchy -->
+  <div class="hero-actions">
+    <a href="/login" class="hero-btn-primary">
+      🔐 Login Again
+    </a>
+    <a href="/" class="hero-btn-secondary">
+      🏠 Back Home
+    </a>
+  </div>
+
 </div>
-</div>
 
-<div class="hero-actions">
-<a href="/login" class="hero-btn">
-🔐 Login Again
-</a>
-
-<a href="/" class="hero-btn">
-🏠 Back Home
-</a>
-</div>
-
-</div>
+<!-- Subtle footer -->
+<footer class="logout-footer" aria-label="Site footer">
+  <span class="logout-footer-inner">Nebula Tasks &bull; Missions safely stored in orbit</span>
+</footer>
 
 <div class="stars"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Rotating motivational quotes ───────────────────── */
+  var quotes = [
+    '\u201cSmall wins become galaxies.\u201d',
+    '\u201cMomentum compounds.\u201d',
+    '\u201cEvery mission starts small.\u201d',
+    '\u201cSee you next orbit.\u201d',
+    '\u201cConsistency is a superpower.\u201d',
+    '\u201cClarity precedes velocity.\u201d',
+    '\u201cFinish what you started.\u201d',
+    '\u201cProgress over perfection.\u201d'
+  ];
+
+  var quoteEl = document.getElementById('quoteText');
+  var quoteIdx = 0;
+
+  if (quoteEl) {
+    setInterval(function () {
+      quoteEl.classList.add('fading');
+      setTimeout(function () {
+        quoteIdx = (quoteIdx + 1) % quotes.length;
+        quoteEl.textContent = quotes[quoteIdx];
+        quoteEl.classList.remove('fading');
+      }, 520);
+    }, 4500);
+  }
+
+  /* ── Populate session stats from localStorage ────────── */
+  // Reads the key Nebula Tasks' analytics layer writes.
+  // Falls back to the placeholder values baked into the HTML.
+  try {
+    var raw = localStorage.getItem('nebula-tasks.pulse.v1');
+    if (raw) {
+      var data = JSON.parse(raw);
+      var mEl = document.getElementById('statMissions');
+      var fEl = document.getElementById('statFocus');
+      var sEl = document.getElementById('statStreak');
+      if (mEl && data.completedToday != null) mEl.textContent = data.completedToday;
+      if (fEl && data.focusMinutes   != null) fEl.textContent = data.focusMinutes;
+      if (sEl && data.streak         != null) sEl.textContent = data.streak;
+    }
+  } catch (e) { /* use HTML fallback values */ }
+
+}());
+</script>
 
 </body>
 </html>
